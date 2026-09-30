@@ -1,0 +1,8 @@
+# 仓库内统一用 LF 换行，避免 Windows / macOS 之间来回改整份文件
+* text=auto eol=lf
+
+*.md   text eol=lf
+*.html text eol=lf
+*.ino  text eol=lf
+*.png  binary
+*.jpg  binary

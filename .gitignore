@@ -1,0 +1,14 @@
+# 系统 / 编辑器垃圾
+Thumbs.db
+Desktop.ini
+.DS_Store
+.vscode/
+.idea/
+*.swp
+*~
+
+# 临时与备份
+*.tmp
+*.bak
+*.log
+*.orig

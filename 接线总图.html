@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>宿舍雷达无线提醒灯 · 全部硬件连接总图</title>
+<style>
+  :root{
+    --red:#d32f2f; --black:#212121; --yellow:#f9a825; --blue:#1976d2;
+    --ink:#1b2430; --muted:#5b6b7f; --line:#d5dde7;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; padding:28px 20px 60px; background:#eef2f7; color:var(--ink);
+    font-family:"Microsoft YaHei","PingFang SC","Hiragino Sans GB",system-ui,-apple-system,sans-serif;
+    line-height:1.75;
+  }
+  .wrap{max-width:1900px;margin:0 auto}
+  h1{font-size:26px;margin:0 0 6px}
+  h2{font-size:20px;margin:38px 0 12px;padding-left:11px;border-left:5px solid var(--blue)}
+  h3{font-size:17px;margin:20px 0 8px}
+  .sub{color:var(--muted);font-size:14px;margin:0 0 20px}
+  .card{background:#fff;border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin:14px 0;
+        box-shadow:0 1px 3px rgba(20,40,70,.06)}
+  .scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
+  svg{display:block;height:auto}
+  #main{width:100%;min-width:1180px}
+  .legend{display:flex;flex-wrap:wrap;gap:10px 26px;font-size:14px;margin:0}
+  .legend span{display:flex;align-items:center;gap:8px}
+  .swatch{width:26px;height:5px;border-radius:3px;flex:none}
+  table{border-collapse:collapse;width:100%;font-size:14px;margin:6px 0}
+  th,td{border:1px solid var(--line);padding:8px 11px;text-align:left;vertical-align:top}
+  th{background:#f1f5fa;font-weight:600;white-space:nowrap}
+  code{background:#eef2f7;border:1px solid var(--line);border-radius:4px;padding:1px 6px;font-size:13px;
+       font-family:Consolas,Menlo,monospace}
+  .warn{background:#fff7e6;border:1px solid #f0c36d;border-left:5px solid #e8a33d;border-radius:8px;padding:12px 16px;margin:14px 0;font-size:14px}
+  .danger{background:#fdeded;border:1px solid #e6a5a5;border-left:5px solid #d32f2f;border-radius:8px;padding:12px 16px;margin:14px 0;font-size:14px}
+  .ok{background:#eef8ee;border:1px solid #a8d5a8;border-left:5px solid #2e7d32;border-radius:8px;padding:12px 16px;margin:14px 0;font-size:14px}
+  ol,ul{padding-left:22px;margin:8px 0}
+  li{margin:6px 0}
+  .grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(430px,1fr));gap:16px}
+  .mini{width:100%;min-width:430px}
+  .tag{display:inline-block;background:#eef2f7;border:1px solid var(--line);border-radius:20px;
+       padding:1px 10px;font-size:13px;color:var(--muted);margin-right:6px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<h1>宿舍雷达无线提醒灯 · 全部硬件连接总图</h1>
+<p class="sub">HLK-LD2410C-P 雷达 + 两块 ESP32-C3 SuperMini + ESP-NOW 无线 · 所有接线一张图看完</p>
+
+<div class="card">
+  <p class="legend">
+    <span><i class="swatch" style="background:var(--red)"></i> 红线 = +5V</span>
+    <span><i class="swatch" style="background:var(--black)"></i> 黑线 = GND</span>
+    <span><i class="swatch" style="background:var(--yellow)"></i> 黄线 = OUT 信号（3.3V 电平）</span>
+    <span><i class="swatch" style="background:var(--blue)"></i> 蓝线 = USB-C 供电</span>
+    <span><i class="swatch" style="background:repeating-linear-gradient(90deg,#7e57c2 0 9px,transparent 9px 18px)"></i> 紫虚线 = ESP-NOW 无线</span>
+    <span><i class="swatch" style="background:transparent;border:2px dashed #7e57c2;height:15px"></i> 紫虚线框 = 可选配件</span>
+  </p>
+</div>
+
+<h2>一、全局连接图</h2>
+<div class="card scroll">
+<svg id="main" viewBox="0 0 2260 1120" xmlns="http://www.w3.org/2000/svg"
+     font-family="Microsoft YaHei, PingFang SC, system-ui, sans-serif">
+
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#7e57c2"/>
+    </marker>
+  </defs>
+
+  <!-- ================= 发射端 ================= -->
+  <rect x="30" y="60" width="1010" height="1000" rx="16" fill="#f8fafc" stroke="#cfd8e3" stroke-width="2"/>
+  <text x="535" y="112" font-size="34" font-weight="700" text-anchor="middle">发射端</text>
+  <text x="535" y="146" font-size="19" fill="#5b6b7f" text-anchor="middle">ESP32-C3 SuperMini (TX) + HLK-LD2410C-P 雷达</text>
+
+  <!-- 供电 -->
+  <rect x="70" y="180" width="280" height="100" rx="10" fill="#fff3e0" stroke="#e8a33d" stroke-width="2.5"/>
+  <text x="210" y="220" font-size="20" font-weight="700" text-anchor="middle" fill="#8a5a00">5V USB-C 电池</text>
+  <text x="210" y="252" font-size="15" text-anchor="middle" fill="#8a5a00">充电宝 / 5V 输出电池盒</text>
+
+  <!-- 可选：电容 -->
+  <rect x="70" y="740" width="480" height="150" rx="10" fill="#ede7f6" stroke="#7e57c2"
+        stroke-width="2" stroke-dasharray="8 6"/>
+  <text x="310" y="776" font-size="17" font-weight="700" text-anchor="middle" fill="#4527a0">470µF 电解 + 0.1µF 陶瓷（可选）</text>
+  <text x="310" y="804" font-size="15" text-anchor="middle" fill="#5e35b1">主要用来吸收 ESP32 WiFi 发射瞬间的电流尖峰</text>
+  <text x="310" y="830" font-size="15" text-anchor="middle" fill="#5e35b1">用充电宝供电时不是必需的，装了没坏处</text>
+  <text x="310" y="856" font-size="15" text-anchor="middle" fill="#5e35b1">电解正极接 5V、负极接 GND，接反会爆</text>
+
+  <!-- 供电线 -->
+  <path d="M210,180 V160 H570 V176" fill="none" stroke="#1976d2" stroke-width="6"/>
+
+  <!-- ESP32 TX -->
+  <rect x="420" y="200" width="380" height="190" rx="12" fill="#e3f2fd" stroke="#1976d2" stroke-width="3"/>
+  <rect x="520" y="176" width="100" height="24" rx="5" fill="#bbdefb" stroke="#1976d2" stroke-width="2"/>
+  <text x="570" y="194" font-size="15" text-anchor="middle" fill="#0d47a1">USB-C</text>
+  <text x="610" y="252" font-size="23" font-weight="700" text-anchor="middle" fill="#0d47a1">ESP32-C3 SuperMini</text>
+  <text x="610" y="280" font-size="18" text-anchor="middle" fill="#0d47a1">发射端 (TX)</text>
+  <text x="610" y="308" font-size="16" text-anchor="middle" fill="#1565c0">MAC E8:3D:C1:95:0B:B8</text>
+  <text x="610" y="338" font-size="16" text-anchor="middle" fill="#2e7d32">接：5V · G · GPIO5（丝印 5）</text>
+  <text x="610" y="364" font-size="14" text-anchor="middle" fill="#5b6b7f">引脚位置见【引脚速查】</text>
+
+  <!-- 雷达 -->
+  <rect x="620" y="760" width="360" height="240" rx="12" fill="#fce4ec" stroke="#c2185b" stroke-width="3"/>
+  <text x="680" y="744" font-size="13" fill="#ad1457" text-anchor="middle">悬空</text>
+  <text x="720" y="744" font-size="13" fill="#ad1457" text-anchor="middle">悬空</text>
+  <text x="680" y="790" font-size="14" fill="#ad1457" text-anchor="middle">TX</text>
+  <text x="720" y="790" font-size="14" fill="#ad1457" text-anchor="middle">RX</text>
+  <text x="780" y="790" font-size="14" fill="#ad1457" text-anchor="middle">OUT</text>
+  <text x="870" y="790" font-size="14" fill="#ad1457" text-anchor="middle">GND</text>
+  <text x="960" y="790" font-size="14" fill="#ad1457" text-anchor="middle">VCC</text>
+  <text x="800" y="862" font-size="22" font-weight="700" text-anchor="middle" fill="#880e4f">雷达</text>
+  <text x="800" y="888" font-size="16" text-anchor="middle" fill="#880e4f">HLK-LD2410C-P</text>
+  <text x="800" y="912" font-size="14" text-anchor="middle" fill="#ad1457">24GHz 人体存在</text>
+  <text x="800" y="952" font-size="15" text-anchor="middle" fill="#880e4f">TX / RX 悬空，套热缩管</text>
+  <text x="800" y="978" font-size="15" text-anchor="middle" fill="#880e4f">VCC 吃 5V · OUT 出 3.3V</text>
+
+  <!-- 三条连线 -->
+  <path d="M500,390 V680 H780 V760" fill="none" stroke="#f9a825" stroke-width="6"/>
+  <path d="M600,390 V620 H870 V760" fill="none" stroke="#212121" stroke-width="6"/>
+  <path d="M700,390 V560 H960 V760" fill="none" stroke="#d32f2f" stroke-width="6"/>
+
+  <text x="512" y="416" font-size="16" fill="#b58100">GPIO5</text>
+  <text x="612" y="416" font-size="16" fill="#212121">G (GND)</text>
+  <text x="712" y="416" font-size="16" fill="#d32f2f">5V</text>
+  <text x="512" y="672" font-size="15" fill="#b58100">← 雷达 OUT</text>
+  <text x="612" y="612" font-size="15" fill="#212121">← 雷达 GND</text>
+  <text x="712" y="552" font-size="15" fill="#d32f2f">← 雷达 VCC</text>
+
+  <!-- 无线 -->
+  <line x1="1065" y1="380" x2="1255" y2="380" stroke="#7e57c2" stroke-width="4"
+        stroke-dasharray="12 9" marker-end="url(#arrow)"/>
+  <text x="1160" y="340" font-size="22" font-weight="700" fill="#5e35b1" text-anchor="middle">ESP-NOW</text>
+  <text x="1160" y="430" font-size="17" fill="#7e57c2" text-anchor="middle">信道 6</text>
+
+  <!-- ================= 接收端 ================= -->
+  <rect x="1280" y="60" width="950" height="540" rx="16" fill="#f8fafc" stroke="#cfd8e3" stroke-width="2"/>
+  <text x="1755" y="112" font-size="34" font-weight="700" text-anchor="middle">接收端</text>
+  <text x="1755" y="146" font-size="19" fill="#5b6b7f" text-anchor="middle">ESP32-C3 SuperMini (RX) + 指示灯</text>
+
+  <rect x="1330" y="180" width="280" height="100" rx="10" fill="#fff3e0" stroke="#e8a33d" stroke-width="2.5"/>
+  <text x="1470" y="222" font-size="20" font-weight="700" text-anchor="middle" fill="#8a5a00">5V USB-C 电池</text>
+  <text x="1470" y="252" font-size="15" text-anchor="middle" fill="#8a5a00">充电宝 / 5V 输出电池盒</text>
+
+  <path d="M1530,280 V296" fill="none" stroke="#1976d2" stroke-width="6"/>
+
+  <rect x="1330" y="320" width="400" height="190" rx="12" fill="#e3f2fd" stroke="#1976d2" stroke-width="3"/>
+  <rect x="1480" y="296" width="100" height="24" rx="5" fill="#bbdefb" stroke="#1976d2" stroke-width="2"/>
+  <text x="1530" y="314" font-size="15" text-anchor="middle" fill="#0d47a1">USB-C</text>
+  <text x="1530" y="372" font-size="23" font-weight="700" text-anchor="middle" fill="#0d47a1">ESP32-C3 SuperMini</text>
+  <text x="1530" y="400" font-size="18" text-anchor="middle" fill="#0d47a1">接收端 (RX)</text>
+  <text x="1530" y="428" font-size="16" text-anchor="middle" fill="#1565c0">MAC E8:3D:C1:95:0C:94</text>
+  <text x="1530" y="458" font-size="16" text-anchor="middle" fill="#2e7d32">接：GPIO1（丝印 1）· G</text>
+  <text x="1530" y="484" font-size="14" text-anchor="middle" fill="#5b6b7f">引脚位置见【引脚速查】</text>
+
+  <rect x="1830" y="360" width="140" height="60" rx="8" fill="#fff8e1" stroke="#f9a825" stroke-width="2.5"/>
+  <text x="1900" y="398" font-size="20" font-weight="700" text-anchor="middle" fill="#8a6d00">220Ω</text>
+  <rect x="2030" y="360" width="140" height="60" rx="8" fill="#ffebee" stroke="#c62828" stroke-width="2.5"/>
+  <text x="2100" y="390" font-size="18" font-weight="700" text-anchor="middle" fill="#b71c1c">LED ▶|</text>
+  <text x="2100" y="412" font-size="13" text-anchor="middle" fill="#b71c1c">短脚朝右</text>
+
+  <line x1="1730" y1="390" x2="1830" y2="390" stroke="#f9a825" stroke-width="6"/>
+  <line x1="1970" y1="390" x2="2030" y2="390" stroke="#f9a825" stroke-width="6"/>
+  <path d="M2170,390 H2205 V470 H1730" fill="none" stroke="#212121" stroke-width="6"/>
+
+  <text x="1742" y="378" font-size="16" fill="#b58100">GPIO1</text>
+  <text x="1742" y="462" font-size="16" fill="#212121">G (GND)</text>
+  <text x="1960" y="516" font-size="15" fill="#b71c1c" text-anchor="middle">长脚(+) 朝电阻，短脚(−) 朝 GND</text>
+</svg>
+</div>
+
+<h2 id="pinout">二、引脚速查</h2>
+<div class="grid2">
+
+  <div class="card">
+    <svg class="mini" viewBox="0 0 700 460" xmlns="http://www.w3.org/2000/svg"
+         font-family="Microsoft YaHei, PingFang SC, system-ui, sans-serif">
+      <text x="350" y="34" font-size="22" font-weight="700" text-anchor="middle">ESP32-C3 SuperMini · 两排 8 针</text>
+      <text x="350" y="62" font-size="16" text-anchor="middle" fill="#5b6b7f">都从 USB-C 那一头往外数</text>
+
+      <rect x="90" y="90" width="520" height="230" rx="14" fill="#e3f2fd" stroke="#1976d2" stroke-width="3"/>
+      <rect x="300" y="70" width="100" height="26" rx="5" fill="#bbdefb" stroke="#1976d2" stroke-width="2"/>
+      <text x="350" y="89" font-size="15" text-anchor="middle" fill="#0d47a1">USB-C</text>
+
+      <text x="72" y="176" font-size="20" font-weight="700" fill="#0d47a1" text-anchor="end">A 排</text>
+      <g font-size="17" text-anchor="middle">
+        <rect x="112" y="152" width="54" height="34" rx="6" fill="#ffcdd2" stroke="#d32f2f" stroke-width="2.5"/>
+        <text x="139" y="176" fill="#b71c1c" font-weight="700">5V</text>
+        <rect x="176" y="152" width="54" height="34" rx="6" fill="#d7d7d7" stroke="#212121" stroke-width="2.5"/>
+        <text x="203" y="176" fill="#212121" font-weight="700">G</text>
+        <rect x="240" y="152" width="54" height="34" rx="6" fill="#eceff1" stroke="#90a4ae" stroke-width="1.5"/>
+        <text x="267" y="176" fill="#546e7a">3.3</text>
+        <rect x="304" y="152" width="52" height="34" rx="6" fill="#eceff1" stroke="#90a4ae" stroke-width="1.5"/>
+        <text x="330" y="176" fill="#546e7a">4</text>
+        <rect x="366" y="152" width="52" height="34" rx="6" fill="#eceff1" stroke="#90a4ae" stroke-width="1.5"/>
+        <text x="392" y="176" fill="#546e7a">3</text>
+        <rect x="428" y="152" width="52" height="34" rx="6" fill="#eceff1" stroke="#90a4ae" stroke-width="1.5"/>
+        <text x="454" y="176" fill="#546e7a">2</text>
+        <rect x="490" y="152" width="52" height="34" rx="6" fill="#fff59d" stroke="#f9a825" stroke-width="2.5"/>
+        <text x="516" y="176" fill="#8a6d00" font-weight="700">1</text>
+        <rect x="552" y="152" width="52" height="34" rx="6" fill="#eceff1" stroke="#90a4ae" stroke-width="1.5"/>
+        <text x="578" y="176" fill="#546e7a">0</text>
+      </g>
+
+      <text x="72" y="256" font-size="20" font-weight="700" fill="#0d47a1" text-anchor="end">B 排</text>
+      <g font-size="17" text-anchor="middle">
+        <rect x="112" y="232" width="54" height="34" rx="6" fill="#fff59d" stroke="#f9a825" stroke-width="2.5"/>
+        <text x="139" y="256" fill="#8a6d00" font-weight="700">5</text>
+        <rect x="176" y="232" width="54" height="34" rx="6" fill="#eceff1" stroke="#90a4ae" stroke-width="1.5"/>
+        <text x="203" y="256" fill="#546e7a">6</text>
+        <rect x="240" y="232" width="54" height="34" rx="6" fill="#eceff1" stroke="#90a4ae" stroke-width="1.5"/>
+        <text x="267" y="256" fill="#546e7a">7</text>
+        <rect x="304" y="232" width="52" height="34" rx="6" fill="#eceff1" stroke="#90a4ae" stroke-width="1.5"/>
+        <text x="330" y="256" fill="#546e7a">8</text>
+        <rect x="366" y="232" width="52" height="34" rx="6" fill="#eceff1" stroke="#90a4ae" stroke-width="1.5"/>
+        <text x="392" y="256" fill="#546e7a">9</text>
+        <rect x="428" y="232" width="52" height="34" rx="6" fill="#eceff1" stroke="#90a4ae" stroke-width="1.5"/>
+        <text x="454" y="256" fill="#546e7a">10</text>
+        <rect x="490" y="232" width="52" height="34" rx="6" fill="#eceff1" stroke="#90a4ae" stroke-width="1.5"/>
+        <text x="516" y="256" fill="#546e7a">20</text>
+        <rect x="552" y="232" width="52" height="34" rx="6" fill="#eceff1" stroke="#90a4ae" stroke-width="1.5"/>
+        <text x="578" y="256" fill="#546e7a">21</text>
+      </g>
+
+      <text x="90" y="356" font-size="16" fill="#b71c1c">■ 发射端用到：A1 (5V) · A2 (G) · B1 (GPIO5，读雷达 OUT)</text>
+      <text x="90" y="384" font-size="16" fill="#8a6d00">■ 接收端用到：A2 (G) · A7 (GPIO1，驱动 LED)</text>
+      <text x="90" y="416" font-size="15" fill="#5b6b7f">不同厂家丝印略有差别，以你板子上印的字为准。</text>
+      <text x="90" y="442" font-size="15" fill="#5b6b7f">GPIO18/19 是 USB D−/D+，没引到排针；GPIO20/21 是 UART0。</text>
+    </svg>
+  </div>
+
+  <div class="card">
+    <svg class="mini" viewBox="0 0 700 400" xmlns="http://www.w3.org/2000/svg"
+         font-family="Microsoft YaHei, PingFang SC, system-ui, sans-serif">
+      <text x="350" y="34" font-size="22" font-weight="700" text-anchor="middle">HLK-LD2410C-P · 5 针</text>
+      <text x="350" y="62" font-size="16" text-anchor="middle" fill="#5b6b7f">看着印有丝印的那一面，从左到右就是这个顺序</text>
+
+      <rect x="60" y="96" width="580" height="150" rx="12" fill="#fce4ec" stroke="#c2185b" stroke-width="3"/>
+      <text x="350" y="126" font-size="16" text-anchor="middle" fill="#ad1457">▲ 天线面在背面（这一面是元件面 / 丝印面）</text>
+
+      <g text-anchor="middle">
+        <circle cx="130" cy="176" r="15" fill="#fff" stroke="#c2185b" stroke-width="3"/>
+        <text x="130" y="182" font-size="14" fill="#880e4f">1</text>
+        <text x="130" y="216" font-size="19" font-weight="700" fill="#880e4f">TX</text>
+
+        <circle cx="235" cy="176" r="15" fill="#fff" stroke="#c2185b" stroke-width="3"/>
+        <text x="235" y="182" font-size="14" fill="#880e4f">2</text>
+        <text x="235" y="216" font-size="19" font-weight="700" fill="#880e4f">RX</text>
+
+        <circle cx="340" cy="176" r="15" fill="#fff8e1" stroke="#f9a825" stroke-width="3.5"/>
+        <text x="340" y="182" font-size="14" fill="#8a6d00">3</text>
+        <text x="340" y="216" font-size="19" font-weight="700" fill="#8a6d00">OUT</text>
+
+        <circle cx="445" cy="176" r="15" fill="#e0e0e0" stroke="#212121" stroke-width="3.5"/>
+        <text x="445" y="182" font-size="14" fill="#212121">4</text>
+        <text x="445" y="216" font-size="19" font-weight="700" fill="#212121">GND</text>
+
+        <circle cx="550" cy="176" r="15" fill="#ffcdd2" stroke="#d32f2f" stroke-width="3.5"/>
+        <text x="550" y="182" font-size="14" fill="#b71c1c">5</text>
+        <text x="550" y="216" font-size="19" font-weight="700" fill="#b71c1c">VCC</text>
+      </g>
+
+      <text x="90" y="290" font-size="17" fill="#5b6b7f">TX / RX → <tspan fill="#880e4f" font-weight="700">悬空</tspan>，用热缩管套住防短路</text>
+      <text x="90" y="320" font-size="17" fill="#8a6d00">OUT → 板子 <tspan font-weight="700">GPIO5</tspan>（B 排第 1 个，丝印 <tspan font-family="Consolas,monospace">5</tspan>）</text>
+      <text x="90" y="350" font-size="17" fill="#212121">GND → 板子 <tspan font-weight="700">G</tspan>（A 排第 2 个）</text>
+      <text x="90" y="380" font-size="17" fill="#b71c1c">VCC → 板子 <tspan font-weight="700">5V</tspan>（A 排第 1 个）——是 5V，不是 3.3V</text>
+    </svg>
+  </div>
+</div>
+
+<h2>三、你的零件决定接法：全是公针 + 全是公对公线</h2>
+
+<div class="card">
+  <p><span class="tag">现状</span>
+    两块 SuperMini 和雷达的排针都是<b>出厂已焊好的公针</b>，手头的杜邦线<b>也全是公对公</b>。</p>
+  <div class="danger" style="margin-top:10px">
+    <b>核心矛盾：公对公的线插不到公针上。</b>
+    杜邦线两头都是公头（针），板子和雷达的引脚也是公头（针）——两个公头没法对插。
+    所以只有两条路：<b>走面包板</b>，或者<b>把公头焊在一起</b>。
+  </div>
+</div>
+
+<div class="grid2">
+  <div class="card">
+    <h3>方式 A：全部走面包板（推荐）</h3>
+    <ol>
+      <li>把 <b>SuperMini 跨着面包板中间凹槽插进去</b>——两排针各落在凹槽两侧的一排孔里。</li>
+      <li>把 <b>雷达也插在面包板上</b>，5 根针占 5 个连续的孔。</li>
+      <li>把 <b>220Ω 和 LED</b> 插在面包板上（元件脚刚好能插进面包板孔）。</li>
+      <li>用<b>公对公杜邦线</b>在面包板孔之间跳线，把该连的孔连起来。</li>
+    </ol>
+    <div class="ok">
+      <b>为什么推荐</b>：不用烙铁、可随时拆改、不伤元件、不留焊锡。
+      发射端现在就能用——雷达直接吃板子 <code>5V</code> 脚上的电，<b>不需要升压模块</b>。
+    </div>
+    <div class="warn">
+      <b>先量一下再插</b>：面包板上能跨过中间凹槽、彼此对齐的两排孔，间距固定是 <b>17.78mm（0.7″）</b>
+      （也就是 a 排到 f 排的距离）。先用卡尺/直尺量板子两排针的间距：
+      <br>· 等于 17.78mm → 可以直接跨着凹槽插进去；
+      <br>· 不等于 → <b>别硬按</b>，硬按会把针别弯。改用一包<b>母对母</b>杜邦线（几块钱），
+      一头夹板子公针、一头夹面包板上的公对公线头。
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>方式 B：直接焊公头（永久，最牢）</h3>
+    <p><b>可以焊，但绝对不能头对头对焊。</b>两个针尖顶在一起焊，看着连上了，一拉就断，焊点旁边还全是裸露的金属。</p>
+    <p style="margin-top:14px"><b>正确做法（并排叠焊）：</b></p>
+    <ol>
+      <li><b>先拔掉所有电源</b>（USB 线、电池开关）。在通电的板子上动烙铁容易短路或静电打死芯片。</li>
+      <li>两根针平行叠放，重叠 <b>3–5mm</b>。</li>
+      <li>先分别给两根针上锡，再靠在一起加热，让锡熔成一体。</li>
+      <li><b>先套热缩管再焊</b>——针间距只有 2.54mm，不套热缩管相邻两根一碰就短路。</li>
+      <li>焊完<b>轻拉一下</b>确认牢固；再用通断档确认相邻两根针<b>不导通</b>。</li>
+    </ol>
+    <div class="ok">
+      <b>更牢的做法</b>：剪掉杜邦线一头，剥出 <b>4–5mm 铜丝</b>，把铜丝<b>缠在针脚上</b>再焊。
+      接触面积比两根针叠焊大得多，也比叠焊好操作。
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <h3>关于"不焊开发板"这件事</h3>
+  <p>不焊开发板是对的（板子还能复用）。但要注意一个连锁问题：</p>
+  <ul>
+    <li><b>如果雷达的针焊死了，雷达就再也插不进面包板了。</b>焊过的地方会挂锡、变粗，硬插会把面包板孔撑松。</li>
+    <li>所以两条路要选一条走到底：
+      <br>① <b>雷达和板子都走面包板</b>（现在的做法，推荐）；
+      <br>② <b>雷达焊死、板子插面包板</b>——那雷达那 3 根线要留够长度，而且雷达以后不能再拔下来插面包板。</li>
+    <li>公头焊过一次之后再想插面包板基本就废了，<b>别只焊一半又反悔</b>。</li>
+  </ul>
+  <div class="warn">
+    <b>发射端现在根本不用焊。</b>雷达吃板子 <code>5V</code> 脚的电，
+    把板子和雷达都插在面包板上，三根公对公跳线（5V↔VCC、G↔GND、GPIO5↔OUT）就通了。
+  </div>
+</div>
+
+<h2>四、接线表（照着一条条接）</h2>
+
+<div class="card">
+  <h3>4.1 正式接法（现在就能做）</h3>
+  <table>
+    <thead><tr><th>#</th><th>从</th><th>到</th><th>线色</th><th>备注</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td>ESP32 发射端 <code>5V</code>（A1）</td><td>雷达 <code>VCC</code></td><td>红</td><td>雷达吃 5V，不吃 3.3V</td></tr>
+      <tr><td>2</td><td>ESP32 发射端 <code>G</code>（A2）</td><td>雷达 <code>GND</code></td><td>黑</td><td></td></tr>
+      <tr><td>3</td><td>雷达 <code>OUT</code></td><td>ESP32 发射端 <code>GPIO5</code>（B1）</td><td>黄</td><td>唯一的信号线</td></tr>
+      <tr><td>4</td><td>雷达 <code>TX</code> / <code>RX</code></td><td>—— 悬空</td><td>—</td><td>套热缩管防短路</td></tr>
+      <tr><td>5</td><td>5V USB-C 电池（发射端那块）</td><td>发射端 <code>USB-C</code></td><td>—</td><td>烧录时改插电脑 USB，二选一</td></tr>
+      <tr><td>6</td><td>5V USB-C 电池（接收端那块）</td><td>接收端 <code>USB-C</code></td><td>—</td><td>充电宝 / 5V 输出电池盒</td></tr>
+      <tr><td>7</td><td>接收端 <code>GPIO1</code>（A7）</td><td>220Ω 一端</td><td>黄</td><td></td></tr>
+      <tr><td>8</td><td>220Ω 另一端</td><td>LED <b>长脚 (+)</b></td><td>—</td><td>串联，方向不能反</td></tr>
+      <tr><td>9</td><td>LED <b>短脚 (−)</b></td><td>接收端 <code>G</code>（A2）</td><td>黑</td><td></td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="card">
+  <h3>4.2 备选方案：用 18650 + 升压模块供电</h3>
+  <p><b>只有在不用 5V USB-C 电池时才需要这一节。</b>走这条路要另外准备三样：
+    <b>18650 电池盒（带开关）</b>、<b>升压模块（Boost，别买成 LM2596 降压）</b>、<b>电容</b>（可选）。</p>
+  <table>
+    <thead><tr><th>#</th><th>从</th><th>到</th><th>线色</th><th>备注</th></tr></thead>
+    <tbody>
+      <tr><td>10</td><td>电池盒 红线</td><td>升压 <code>IN+</code></td><td>红</td><td>接之前先不开开关</td></tr>
+      <tr><td>11</td><td>电池盒 黑线</td><td>升压 <code>IN−</code></td><td>黑</td><td></td></tr>
+      <tr><td>12</td><td>升压 <code>OUT+</code></td><td>发射端 <code>5V</code> 脚（和雷达 VCC 同一点）</td><td>红</td><td>先空载调到 5.0V，再带载复测</td></tr>
+      <tr><td>13</td><td>升压 <code>OUT−</code></td><td>发射端 <code>G</code> 脚（和雷达 GND 同一点）</td><td>黑</td><td></td></tr>
+      <tr><td>14</td><td>470µF（+ 接 5V）+ 0.1µF</td><td>并接在雷达 <code>VCC</code>/<code>GND</code> 之间</td><td>—</td><td>可选；两只并联，引线越短越好</td></tr>
+    </tbody>
+  </table>
+  <div class="danger">
+    走这条路之后，<b>发射端的 <code>5V</code> 脚上会同时有 USB-C 的 5V 和升压模块的 5V</b>，
+    也就<b>重新出现了「升压模块 5V 倒灌电脑 USB 口」的风险</b>。
+    所以烧录前必须<b>关掉电池盒开关</b>，或者更稳一点：<b>把升压 <code>OUT+</code> 从 5V 脚上拔掉</b>。
+    <br>用 5V USB-C 电池直插的方案<b>没有这个问题</b>，因为一个 USB-C 口插不下两样东西。
+  </div>
+</div>
+
+<h2>五、上电与烧录顺序</h2>
+<div class="card">
+  <h3>现在（5V USB-C 电池供电）</h3>
+  <p style="margin:4px 0">板子上只有<b>一个</b> USB-C 口，所以<b>电池和电脑不可能同时插</b>。顺序就两步：</p>
+  <ol>
+    <li><b>刷固件</b>：拔掉电池，把 Type-C 线插到电脑上，烧录。</li>
+    <li><b>刷完</b>：拔掉电脑那根线，把 Type-C 线插到 5V USB-C 电池上。</li>
+  </ol>
+  <div class="ok">
+    <b>没有任何倒灌风险。</b>发射端和接收端各用各的电池，两块板子各自把上面两步走一遍就行。
+  </div>
+
+  <h3>备选方案（18650 + 升压模块，铁律）</h3>
+  <table>
+    <thead><tr><th>场景</th><th>电池盒开关</th><th>Type-C 数据线</th><th>升压 OUT+ 到 5V 脚</th></tr></thead>
+    <tbody>
+      <tr><td>烧录固件时</td><td><b>关</b></td><td>插电脑</td><td><b>拔掉</b>（最稳）</td></tr>
+      <tr><td>日常使用</td><td>开</td><td>拔掉</td><td>接上</td></tr>
+      <tr><td>接收端（没接升压模块时）</td><td>—</td><td>拔掉</td><td>不适用</td></tr>
+    </tbody>
+  </table>
+  <div class="danger">
+    <b>绝对不要</b>在升压模块有 5V 输出（电池盒开关开着）的同时，把 Type-C 插进电脑。
+    升压模块的 5V 会倒灌进电脑 USB 口。
+  </div>
+</div>
+
+<h2>六、通电前的三项检查</h2>
+<div class="card">
+  <ol>
+    <li><b>量 5V 和 GND 是否短路</b>——万用表通断档，表笔搭板子的 <code>5V</code> 脚和 <code>G</code> 脚，<b>应该不响</b>。响了就是哪根线搭错了。</li>
+    <li><b>量雷达的 VCC 和 GND</b>——上电后黑笔固定在板子 <code>G</code>：
+      <br>雷达 <code>VCC</code> = <b>5.0V</b>；雷达 <code>GND</code> = <b>0.0V</b>（不是 0.4V！有压差说明地线虚接）；雷达 <code>OUT</code> = 有人 3.3V / 没人 0V。
+    </li>
+    <li><b>量电池是不是真的在出 5V</b>——插上 5V USB-C 电池后，黑笔固定板子 <code>G</code>，红笔搭板子 <code>5V</code> 脚，
+      读数应该是 <b>4.9–5.2V</b>。低了说明电池这个口没输出、线没插到底或插错了口。接收端同样量一次。</li>
+  </ol>
+  <p style="margin:16px 0 4px"><b>走备选方案（18650 + 升压模块）时再加一条：</b>量升压模块的<b>带载</b>输出，必须落在 <b>4.9–5.2V</b>。</p>
+  <div class="warn">
+    <b>不要在通电状态下用通断档 / 电阻档去量。</b>带电测电阻没有意义，读数会骗你。要查通断，先拔掉所有电源。
+  </div>
+</div>
+
+<h2>七、四条不能碰的红线</h2>
+<div class="card">
+  <ul>
+    <li><b>5V 只能进 <code>5V</code> 脚。</b>SuperMini 的 <code>5V</code> 脚和 Type-C 的 VBUS 直连；<code>3V3</code> 是板上 LDO 的<b>输出</b>，5V 灌进去会烧板子。</li>
+    <li><b>任何 GPIO 都不能碰 5V。</b>GPIO 耐压 3.3V。雷达 <code>OUT</code> 正好是 3.3V，可以直接接，不需要电平转换。</li>
+    <li><b>470µF 电解的正负极不能反（如果装了这颗电容）。</b>正极接 5V、负极接 GND，接反会爆。焊之前用万用表确认极性。</li>
+    <li><b>LED 方向不能反。</b>长脚是正极，朝电阻那一侧；短脚朝 GND。脚剪短了就看侧面平切面，平切面那侧的脚是负极。</li>
+  </ul>
+</div>
+
+<h2>八、续航估算（估算，未实测）</h2>
+<div class="card">
+  <p><b>下面全是估算值，没有实测过</b>，只用来判断「够不够用」，不要当成验收标准。</p>
+  <p>可用 5V 容量 ≈ 标称 mAh × 3.7 ÷ 5 × 0.85 ≈ <b>标称 mAh × 0.63</b>。</p>
+  <table>
+    <thead><tr><th>板子</th><th>平均电流</th><th>10000mAh 电池的可用 5V 容量</th><th>估算续航</th></tr></thead>
+    <tbody>
+      <tr><td>发射端（ESP32 + 雷达）</td><td>约 120–160mA</td><td rowspan="2">≈ 6300mAh</td><td>约 40–50 小时</td></tr>
+      <tr><td>接收端（ESP32 + LED）</td><td>约 40–80mA</td><td>约 80–150 小时</td></tr>
+    </tbody>
+  </table>
+  <p>发射端比接收端费电得多，因为雷达是常开的。上表<b>没算充电宝自身的自放电</b>，实际只会更短，不会更长。</p>
+</div>
+
+<p class="sub" style="margin-top:36px">
+  配套文档：<b>硬件安装教程.md</b>（动手步骤）· <b>烧录教程.md</b>（固件烧录）·
+  固件：<code>firmware/tx_radar</code> · <code>firmware/rx_alert</code>
+</p>
+
+</div>
+</body>
+</html>
