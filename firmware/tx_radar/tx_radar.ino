@@ -6,10 +6,14 @@
  *
  * 做的事：
  *   读雷达的 OUT 脚（GPIO5），判断"有人/没人"，
- *   用 ESP-NOW 广播把状态发给空气里所有接收端。
+ *   用 ESP-NOW 单播把状态发给接收端那块板子。
  *
- * 广播的好处：接收端不用先读出 MAC 再填进来，烧完就能用。
- * 代价是广播没有 ACK，所以改用"每条状态变化连发 3 次"来抗丢包。
+ * ★★★ 烧录前必须改这里 ★★★
+ *   把 peerMac[] 改成你自己接收端的 MAC。
+ *   怎么读：接收端烧好 rx_alert 之后，串口启动横幅会打印
+ *          [RX] 本机 MAC = XX:XX:XX:XX:XX:XX
+ *   把那 6 组十六进制抄过来，冒号改逗号、每段前面加 0x 即可。
+ *   填错的表现：接收端日志里一直是 原始包=0。
  *
  * 发包规则：
  *   type = 1（有人）   上升沿连发 3 次，之后每 1.5 秒心跳 1 次
@@ -33,6 +37,12 @@
 #include <esp_system.h>
 
 // ============================================================
+//  ★ 接收端 MAC —— 改成你自己的（见文件头说明）
+// ============================================================
+
+uint8_t peerMac[] = {0xE8, 0x3D, 0xC1, 0x95, 0x0B, 0xB8};
+
+// ============================================================
 //  用户可调参数
 // ============================================================
 
@@ -43,10 +53,11 @@
 #define DEBOUNCE_ON_MS   120
 #define DEBOUNCE_OFF_MS  400
 
-#define HEARTBEAT_MS     1500UL   // 有人期间的心跳间隔
+#define HEARTBEAT_MS     1000UL   // 有人期间的心跳间隔（越短越能扛射频衰落）
 #define HEARTBEAT_LOG_MS 10000UL  // 心跳日志每 10 秒才打一行，免得刷屏
 
-// 广播没有 ACK，靠"同一条消息连发几次"来抗丢包
+// 每条状态变化重复发几次。单播有链路层 ACK，但实测 ACK 状态不可靠，
+// 连发几次成本极低，能兜住偶发丢包。
 #define BURST_COUNT      3
 #define BURST_GAP_MS     15
 
@@ -72,11 +83,19 @@ typedef struct {
   uint32_t bootId;   // 本次上电的随机数，接收端靠它识别"发射端重启过"
 } RadioMsg;
 
-static const uint8_t BROADCAST_MAC[6] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
-
 esp_now_peer_info_t g_peer = {};
 uint32_t g_bootId = 0;
 volatile uint32_t g_loopTick = 0;   // 每转一圈 +1，看门狗任务盯着它
+
+// 链路层 ACK 统计。ACK 状态本身不可靠（实测经常报没收到但数据送达），
+// 但成功率能看出射频通路的好坏：一直 0 说明帧根本没到对面。
+volatile uint32_t g_ackOk   = 0;
+volatile uint32_t g_ackFail = 0;
+
+void onSent(const esp_now_send_info_t *info, esp_now_send_status_t status) {
+  if (status == ESP_NOW_SEND_SUCCESS) g_ackOk++;
+  else                                g_ackFail++;
+}
 
 // ============================================================
 //  主循环看门狗
@@ -113,11 +132,11 @@ void sendState(uint8_t type, uint8_t burst) {
 
   uint8_t ok = 0;
   for (uint8_t i = 0; i < burst; i++) {
-    if (esp_now_send(BROADCAST_MAC, (uint8_t *)&m, sizeof(m)) == ESP_OK) ok++;
+    if (esp_now_send(peerMac, (uint8_t *)&m, sizeof(m)) == ESP_OK) ok++;
     if (i + 1 < burst) delay(BURST_GAP_MS);
   }
 
-  // 广播不会给 ACK，这里只能反映"驱动层有没有把包收下"。
+  // 发送回调的 ACK 状态不可靠，这里只报"驱动层有没有把包收下"。
   // 发不出去通常意味着队列忙，下一轮心跳会补上。
   if (Serial && ok < burst) {
     Serial.print("[TX] 警告：只发出 ");
@@ -165,18 +184,19 @@ void setup() {
     ESP.restart();
   }
 
-  // 注册广播对端。ESP-NOW 只往"已登记的对端"发包，广播地址也算一个对端。
-  memcpy(g_peer.peer_addr, BROADCAST_MAC, 6);
+  memcpy(g_peer.peer_addr, peerMac, 6);
   g_peer.channel = WIFI_CHANNEL;
   g_peer.encrypt = false;
   if (esp_now_add_peer(&g_peer) != ESP_OK) {
-    if (Serial) Serial.println("[TX] 添加广播对端失败，3 秒后重启");
+    if (Serial) Serial.println("[TX] 添加对端失败，检查 peerMac 是否填错");
     delay(3000);
     ESP.restart();
   }
 
   // esp_now_init() 可能把信道重置回 STA 默认值，这里必须再设一次
   esp_wifi_set_channel(WIFI_CHANNEL, WIFI_SECOND_CHAN_NONE);
+
+  esp_now_register_send_cb(onSent);
 
   if (Serial) {
     uint8_t ch = 0;
@@ -186,10 +206,13 @@ void setup() {
     Serial.println("[TX] ===== RadarBeacon 发射端 =====");
     Serial.print("[TX] 本机 MAC   = ");
     Serial.println(WiFi.macAddress());
+    Serial.print("[TX] 目标 MAC   = ");
+    for (int i = 0; i < 6; i++) {
+      Serial.printf("%02X", peerMac[i]);
+      Serial.print(i < 5 ? ":" : "\n");
+    }
     Serial.print("[TX] 信道       = ");
     Serial.println(ch);
-    Serial.print("[TX] 发送方式   = 广播（不需要填接收端 MAC）");
-    Serial.println();
     Serial.print("[TX] bootId     = 0x");
     Serial.println(g_bootId, HEX);
     Serial.print("[TX] 开机 OUT   = ");
@@ -226,10 +249,10 @@ void loop() {
     if (present) {
       sendState(MSG_PRESENT, BURST_COUNT);
       lastBeatMs = millis();
-      if (Serial) Serial.println("[TX] 有人 → 已广播");
+      if (Serial) Serial.println("[TX] 有人 → 已发送");
     } else {
       sendState(MSG_ABSENT, BURST_COUNT);
-      if (Serial) Serial.println("[TX] 没人 → 已广播");
+      if (Serial) Serial.println("[TX] 没人 → 已发送");
     }
   }
 
@@ -240,6 +263,22 @@ void loop() {
     if (millis() - lastBeatLog >= HEARTBEAT_LOG_MS) {
       lastBeatLog = millis();
       if (Serial) Serial.println("[TX] 持续有人（心跳中）");
+    }
+  }
+
+  // ---- 4. 每 10 秒报一次状态（不管有没有在发，都能看出链路好坏）----
+  static uint32_t lastStat = 0;
+  if (millis() - lastStat >= 10000UL) {
+    lastStat = millis();
+    if (Serial) {
+      Serial.print("[TX] 状态 present=");
+      Serial.print(present ? 1 : 0);
+      Serial.print(" OUT=");
+      Serial.print(raw ? 1 : 0);
+      Serial.print(" ACK成功=");
+      Serial.print((unsigned long)g_ackOk);
+      Serial.print(" ACK失败=");
+      Serial.println((unsigned long)g_ackFail);
     }
   }
 

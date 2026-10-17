@@ -5,16 +5,17 @@
  * ============================================================
  *
  * 做的事：
- *   监听空气里的 ESP-NOW 广播包，只认 RadarBeacon 发射端发的（靠 magic 过滤），
+ *   监听 ESP-NOW 单播包，只认 RadarBeacon 发射端发的（靠 magic 过滤），
  *   按状态驱动 GPIO1 上的 LED。
  *
  * 灯的行为：
  *   type = 1（有人）   → 一直快闪（亮 300ms / 灭 300ms）
  *   type = 0（没人）   → 立刻灭
- *   8 秒收不到任何包   → 自动灭（发射端掉线 / 断电 / 连续丢包兜底）
+ *   15 秒收不到任何包  → 自动灭（发射端掉线 / 断电 / 连续丢包兜底）
  *
- * 因为发射端用广播，这块板子**不需要知道发射端的 MAC**，烧完就能用。
- * 同一信道上如果有多个发射端在广播，它会跟着最后收到的那个状态走。
+ * 发射端用单播，会朝这块板子的 MAC 发；所以 tx_radar 的 peerMac[]
+ * 必须填这块板子的 MAC —— 见下方启动横幅打印的那个。
+ * 同一信道上如果有多个发射端都朝它发，它会跟着最后收到的那个状态走。
  *
  * 接线：
  *   GPIO1 ── 220Ω ── LED 长脚(+)
@@ -38,7 +39,9 @@
 #define WIFI_CHANNEL     6        // 必须和发射端一致
 
 #define BLINK_PERIOD_MS  300UL    // 快闪周期：亮 300ms + 灭 300ms
-#define LINK_TIMEOUT_MS  8000UL   // 这么久没收到包就认为发射端失联
+#define LINK_TIMEOUT_MS  15000UL  // 这么久没收到包就认为发射端失联
+                                  // 设 15 秒：实测射频衰落时会出现 3~9 秒的空档，
+                                  // 8 秒会导致灯乱灭。
 #define STATUS_LOG_MS    30000UL  // "持续有人中" 日志间隔
 
 // 主循环看门狗：这么多毫秒没有转完一圈就重启板子。设成 0 关闭。
@@ -75,7 +78,9 @@ volatile uint8_t  g_lastType    = MSG_ABSENT;
 volatile int8_t   g_lastRssi    = 0;
 volatile bool     g_newPkt      = false;
 volatile bool     g_bootChanged = false;
-volatile uint32_t g_pktCount    = 0;
+volatile uint32_t g_pktCount    = 0;   // 通过全部校验的有效包
+volatile uint32_t g_anyPkt      = 0;   // 进过回调的包（不管校验过没过）
+volatile uint32_t g_badPkt      = 0;   // 被校验丢掉的包
 volatile uint32_t g_loopTick    = 0;
 
 // ============================================================
@@ -103,14 +108,16 @@ void watchdogTask(void *) {
 // 回调跑在 WiFi 任务里，这里只置标志位，一律不打印。
 
 void onRecv(const esp_now_recv_info_t *info, const uint8_t *data, int len) {
-  if (len != (int)sizeof(RadioMsg)) return;
+  g_anyPkt++;                                               // 先计数，再校验
+
+  if (len != (int)sizeof(RadioMsg)) { g_badPkt++; return; }
 
   RadioMsg m;
   memcpy(&m, data, sizeof(m));
 
-  if (m.magic != PROTO_MAGIC) return;                       // 不是 RadarBeacon 的包
-  if (m.ver != PROTO_VER) return;                           // 协议版本对不上
-  if (m.type != MSG_PRESENT && m.type != MSG_ABSENT) return;
+  if (m.magic != PROTO_MAGIC) { g_badPkt++; return; }       // 不是 RadarBeacon 的包
+  if (m.ver != PROTO_VER)     { g_badPkt++; return; }       // 协议版本对不上
+  if (m.type != MSG_PRESENT && m.type != MSG_ABSENT) { g_badPkt++; return; }
 
   // 发射端每条状态变化会连发 3 次，这 3 个包共用同一个 seq。
   // 只认第一次，否则日志会刷 3 行、也无谓地反复重置看门狗。
@@ -170,8 +177,8 @@ void setup() {
     Serial.println(WiFi.macAddress());
     Serial.print("[RX] 信道     = ");
     Serial.println(ch);
-    Serial.println("[RX] 监听方式 = 广播（不需要填发射端 MAC）");
-    Serial.println("[RX] 等待广播...");
+    Serial.println("[RX] 接收方式 = 单播（tx_radar 的 peerMac[] 里必须填上面这个 MAC）");
+    Serial.println("[RX] 等待数据...");
   }
 
 #if LOOP_WDT_MS > 0
@@ -241,7 +248,24 @@ void loop() {
     }
   }
 
-  // ---- 5. 驱动 LED ----
+  // ---- 5. 存活自检：每 10 秒报一次，证明主循环在跑 ----
+  // 这条的意义：收不到包时，靠它能区分"板子活着但链路断了"和"板子启动后就卡死了"
+  static uint32_t lastAlive = 0;
+  if (millis() - lastAlive >= 10000UL) {
+    lastAlive = millis();
+    if (Serial) {
+      Serial.print("[RX] 在线  原始包=");
+      Serial.print((unsigned long)g_anyPkt);
+      Serial.print(" 被过滤=");
+      Serial.print((unsigned long)g_badPkt);
+      Serial.print(" 有效=");
+      Serial.print((unsigned long)g_pktCount);
+      Serial.print(" 状态=");
+      Serial.println(g_present ? "有人" : "没人");
+    }
+  }
+
+  // ---- 6. 驱动 LED ----
   if (!g_present) {
     digitalWrite(ALERT_LED, LOW);
     delay(20);
@@ -253,7 +277,7 @@ void loop() {
   uint32_t ph = (millis() - ledStart) / BLINK_PERIOD_MS;
   digitalWrite(ALERT_LED, (ph % 2 == 0) ? HIGH : LOW);
 
-  // ---- 6. 周期性状态日志 ----
+  // ---- 7. 周期性状态日志 ----
   if (millis() - lastStat >= STATUS_LOG_MS) {
     lastStat = millis();
     if (Serial) {
